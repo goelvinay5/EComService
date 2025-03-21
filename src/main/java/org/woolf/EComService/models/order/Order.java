@@ -31,7 +31,11 @@ public class Order extends BaseModel {
     private OrderStatus orderStatus;
 
     private String trackingNumber;
-    private String transactionId;
+    private String invoiceNumber;
+    private String paymentOrderId;
+    private String paymentLink;
+    private String paymentId;
+    private String refundId;
 
     public Order() {
         this.orderItems = new ArrayList<>();

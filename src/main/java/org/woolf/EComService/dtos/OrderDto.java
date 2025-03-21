@@ -18,7 +18,11 @@ public class OrderDto {
     private Date orderDate;
     private String paymentMethod;
     private String paymentStatus;
-    private String transactionId;
+    private String paymentOrderId;
+    private String paymentLink;
+    private String paymentId;
+    private String invoiceNo;
+    private String refundId;
     private String trackingNumber;
     private double totalAmount;
     private List<OrderItemsDto> items;
@@ -31,7 +35,10 @@ public class OrderDto {
         dto.setOrderDate(order.getCreated_at());
         dto.setPaymentMethod(order.getPaymentMethod().toString());
         dto.setPaymentStatus(order.getPaymentStatus().toString());
-        dto.setTransactionId(order.getTransactionId());
+        dto.setPaymentOrderId(order.getPaymentOrderId());
+        dto.setPaymentLink(order.getPaymentLink());
+        dto.setPaymentId(order.getPaymentId());
+        dto.setInvoiceNo(order.getInvoiceNumber());
         dto.setTrackingNumber(order.getTrackingNumber());
         dto.setTotalAmount(order.getTotalAmount());
 

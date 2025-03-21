@@ -3,6 +3,7 @@ package org.woolf.EComService.controllers;
 import org.woolf.EComService.dtos.OrderDto;
 import org.woolf.EComService.exceptions.InsufficientStockException;
 import org.woolf.EComService.exceptions.NotFoundException;
+import org.woolf.EComService.exceptions.PaymentClientException;
 import org.woolf.EComService.models.User;
 import org.woolf.EComService.models.order.Order;
 import org.woolf.EComService.models.order.OrderStatus;
@@ -31,7 +32,7 @@ public class OrderController {
 
     // Place order (initiate payment)
     @PostMapping("/place")
-    public ResponseEntity<OrderDto> placeOrder(Authentication authentication) throws InsufficientStockException, NotFoundException {
+    public ResponseEntity<OrderDto> placeOrder(Authentication authentication) throws InsufficientStockException, NotFoundException, PaymentClientException  {
         Jwt jwt = ((JwtAuthenticationToken) authentication).getToken();
         User user = UserUtils.createUserIfNotExist(jwt, userRepository);
 
@@ -40,9 +41,13 @@ public class OrderController {
     }
 
     // Confirm payment (called by frontend after payment completion)
-    @PostMapping("/confirm-payment/{transactionId}")
-    public ResponseEntity<OrderDto> confirmPayment(@PathVariable String transactionId) throws NotFoundException {
-        Order order = orderService.confirmPayment(transactionId);
+    @PostMapping("/confirm-payment/{paymentOrderId}")
+    public ResponseEntity<OrderDto> confirmPayment(Authentication authentication, @PathVariable String paymentOrderId)
+            throws NotFoundException, PaymentClientException {
+        Jwt jwt = ((JwtAuthenticationToken) authentication).getToken();
+        User user = UserUtils.createUserIfNotExist(jwt, userRepository);
+
+        Order order = orderService.confirmPayment(user.getId(), paymentOrderId);
         return new ResponseEntity<>(OrderDto.fromOrder(order), HttpStatus.CREATED);
     }
 
@@ -67,7 +72,7 @@ public class OrderController {
     }
 
     @PostMapping("/cancel/{orderId}")
-    public ResponseEntity<OrderDto> cancelOrder(@PathVariable Long orderId) throws NotFoundException {
+    public ResponseEntity<OrderDto> cancelOrder(@PathVariable Long orderId) throws NotFoundException, PaymentClientException  {
         Order order = orderService.cancelOrder(orderId);
         return new ResponseEntity<>(OrderDto.fromOrder(order), HttpStatus.OK);
     }
