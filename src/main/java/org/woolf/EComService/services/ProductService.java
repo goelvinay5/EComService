@@ -7,6 +7,10 @@ import org.woolf.EComService.models.product.Category;
 import org.woolf.EComService.models.product.Product;
 import org.woolf.EComService.repositories.CategoryRepository;
 import org.woolf.EComService.repositories.ProductRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -55,6 +59,8 @@ public class ProductService {
         return productRepository.findAll();
     }
 
+    // Cache individual product by ID
+    @Cacheable(value = "products", key = "#id")
     public Product getProductById(Long id) throws NotFoundException {
         Optional<Product> optionalProduct = productRepository.findById(id);
 
@@ -71,6 +77,13 @@ public class ProductService {
         return optionalProduct.get();
     }
 
+    /**
+     * Updates existing product and updates cache automatically
+     */
+    @Caching(
+            put = @CachePut(value = "products", key = "#id"),
+            evict = @CacheEvict(value = "products", key = "#id", beforeInvocation = true)
+    )
     public Product updateProduct(Long id, Map<String, Object> updates) throws NotFoundException {
         Optional<Product> optionalProduct = productRepository.findById(id);
 
@@ -100,7 +113,7 @@ public class ProductService {
                     product.setRating((Double) value);
                     break;
                 case "stockQuantity":
-                    product.setRating((Integer) value);
+                    product.setStockQuantity((Integer) value);
                     break;
                 case "category":
                     String mapCategory = ((String) value);
@@ -123,6 +136,7 @@ public class ProductService {
         return productRepository.save(product);
     }
 
+    @CacheEvict(value = "products", key = "#id")
     public void deleteProduct(Long id) throws NotFoundException {
         Optional<Product> optionalProduct = productRepository.findById(id);
         if(optionalProduct.isEmpty())
@@ -136,6 +150,12 @@ public class ProductService {
             throw new NotFoundException("Product with id: "+id+ " does not exist");
         }
         product.setDeleted(true);
+    }
+
+    // Clear all product caches
+    @CacheEvict(value = "products", allEntries = true)
+    public void refreshProductCache() {
+        // Method just for cache eviction
     }
 
 }
